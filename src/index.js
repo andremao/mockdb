@@ -29,7 +29,7 @@ module.exports = {
     app.use((req, res, next) => {
       const { path: reqPath, method } = req;
 
-      const files = fs.readdirSync(mockDir);
+      const files = fs.readdirSync(mockDir).filter((v) => v.endsWith('.js'));
 
       if (!files.length) {
         return next();
@@ -78,16 +78,47 @@ module.exports = {
     db.defaults({ list: [] }).write();
 
     return {
+      getState() {
+        return db.getState();
+      },
+      setState(state) {
+        return db.setState(state);
+      },
       // 插入数据
       insert(data) {
-        const model = _.assign(data, {
-          id: mockjs.Random.guid(),
-        });
-        db.get('list').push(model).write();
+        if (_.isArray(data)) {
+          data.map((v) => {
+            v.id = mockjs.Random.guid();
+            return v;
+          });
+          db.get('list')
+            .push(...data)
+            .write();
+        } else {
+          data.id = mockjs.Random.guid();
+          db.get('list').push(data).write();
+        }
+        return data;
+      },
+      // 根据id删除，删除成功返回被删除的数据，否则返回null
+      delete(id) {
+        const model = this.find(id);
+        if (model) {
+          db.get('list').remove({ id }).write();
+        }
         return model;
       },
+      // 补丁更新
+      patchUpdate(id, data) {
+        db.get('list').find({ id }).assign(data).write();
+        return this.find(id);
+      },
+      // 根据id查找
+      find(id) {
+        return db.get('list').find({ id }).value();
+      },
       // 分页查询
-      pagedQuery({ page, size, eq, gt, lt, ge, le, like }) {
+      pagedQuery({ page = 1, size = 10, eq, gt, lt, ge, le, like }) {
         let chain = db.get('list');
 
         // eq
@@ -163,23 +194,6 @@ module.exports = {
           data: _.chunk(list, size)[page - 1] || [],
           total: list.length,
         };
-      },
-      // 根据id查找
-      find(id) {
-        return db.get('list').find({ id }).value();
-      },
-      // 根据id删除，删除成功返回被删除的数据，否则返回null
-      delete(id) {
-        const model = this.find(id);
-        if (model) {
-          db.get('list').remove({ id }).write();
-        }
-        return model;
-      },
-      // 补丁更新
-      patchUpdate(id, data) {
-        db.get('list').find({ id }).assign(data).write();
-        return this.find(id);
       },
     };
   },
