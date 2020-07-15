@@ -24,51 +24,54 @@ if (!fs.existsSync(dbDir)) {
 }
 
 module.exports = {
-  middleware: (req, res, next) => {
-    const { path: reqPath, method } = req;
+  install(app) {
+    app.use(require('body-parser').json());
+    app.use((req, res, next) => {
+      const { path: reqPath, method } = req;
 
-    const files = fs.readdirSync(mockDir);
+      const files = fs.readdirSync(mockDir);
 
-    if (!files.length) {
-      return next();
-    }
+      if (!files.length) {
+        return next();
+      }
 
-    const requests = [];
+      const requests = [];
 
-    files.forEach((v) => {
-      const p = path.resolve(mockDir, v);
-      delete require.cache[require.resolve(p)];
-      requests.push(...require(p).requests);
-    });
+      files.forEach((v) => {
+        const p = path.resolve(mockDir, v);
+        delete require.cache[require.resolve(p)];
+        requests.push(...require(p).requests);
+      });
 
-    const existed = requests.some(({ type = 'GET', url, tpl, handle }) => {
-      if (type.toUpperCase() !== method.toUpperCase()) return false;
+      const existed = requests.some(({ type = 'GET', url, tpl, handle }) => {
+        if (type.toUpperCase() !== method.toUpperCase()) return false;
 
-      if (url instanceof RegExp) {
-        if (!url.test(reqPath)) return false;
-      } else {
-        const params = new URLPattern(url).match(reqPath);
-        if (!params) {
-          return false;
-        }
-
-        if (req.params) {
-          Object.assign(req.params, params);
+        if (url instanceof RegExp) {
+          if (!url.test(reqPath)) return false;
         } else {
-          req.params = params;
+          const params = new URLPattern(url).match(reqPath);
+          if (!params) {
+            return false;
+          }
+
+          if (req.params) {
+            Object.assign(req.params, params);
+          } else {
+            req.params = params;
+          }
         }
-      }
 
-      if (handle) {
-        handle(req, res, next);
-      } else {
-        res.json(mockjs.mock(tpl));
-      }
+        if (handle) {
+          handle(req, res, next);
+        } else {
+          res.json(mockjs.mock(tpl));
+        }
 
-      return true;
+        return true;
+      });
+
+      if (!existed) next();
     });
-
-    if (!existed) next();
   },
   service(module) {
     const db = lowdb(new FileSync(path.resolve(dbDir, `${module}.json`)));
