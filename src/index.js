@@ -73,8 +73,11 @@ module.exports = {
       if (!existed) next();
     });
   },
-  service(module) {
-    const db = lowdb(new FileSync(path.resolve(dbDir, `${module}.json`)));
+  service(jsonFileName) {
+    if (!jsonFileName.endsWith('.json')) {
+      jsonFileName += '.json';
+    }
+    const db = lowdb(new FileSync(path.resolve(dbDir, jsonFileName)));
     db.defaults({ list: [] }).write();
 
     return {

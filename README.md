@@ -1,6 +1,6 @@
 ## 介绍
 
-这是一个支持 **JSON文件持久化** 和 **热加载配置文件** 结合 `webpack devServer` 来管理 `mockjs` 的中间件模块
+这是一个基于 Express 支持 **JSON 文件持久化** 和 **热加载配置文件** 管理 `mockjs` 的中间件模块
 
 ## 安装
 
@@ -17,7 +17,7 @@
    ```javascript
    const service = require('@andremao/mockdb').service('user');
    const mockjs = require('mockjs');
-   
+
    module.exports = {
      // 要被 mockjs 拦截的请求集
      requests: [
@@ -33,9 +33,7 @@
          tpl: {
            code: 200,
            message: '获取用户列表成功',
-           'data|1-10': [
-             { id: '@ID()', name: '@CNAME()', 'age|18-60': 1 },
-           ],
+           'data|1-10': [{ id: '@ID()', name: '@CNAME()', 'age|18-60': 1 }],
          },
        },
        // 分页查询
@@ -44,19 +42,21 @@
          url: '/user/pagedquery',
          handle(req, res) {
            console.log(req.query, 'req.query');
-   
+
            // 如果 JSON 文件中没有数据，则自动生成 100 条
            const { list } = service.getState();
            if (!list || !list.length) {
              // 批量插入，持久化至 JSON 文件中，insert 方法支持单个对象或数组
              service.insert(
                mockjs.mock({
-                 'list|100': [{ id: '@GUID()', name: '@CNAME()', 'age|15-60': 1 }],
+                 'list|100': [
+                   { id: '@GUID()', name: '@CNAME()', 'age|15-60': 1 },
+                 ],
                }).list,
              );
            }
            // /如果 JSON 文件中没有数据，则自动生成 100 条
-   
+
            const { page, size, name, age, ageType } = req.query;
            const conditions = {};
            if (name) {
@@ -85,7 +85,7 @@
            // 根据 id 查找用户
            const user = service.find(id);
            res.json({
-            	code: 200,
+             code: 200,
              message: '获取用户信息成功',
              data: user,
            });
@@ -113,7 +113,7 @@
          handle(req, res) {
            console.log(req.params, 'req.params');
            // 根据 id 删除，返回被删除的对象
-   				const user = service.delete(req.params.id);
+           const user = service.delete(req.params.id);
            res.json({
              code: 200,
              message: 'ok',
@@ -155,7 +155,7 @@
          // 判断是否为开发环境
          if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
            // 安装，挂上中间件
-   				require('@andremao/mockdb').install(app);
+           require('@andremao/mockdb').install(app);
          }
        },
      },
@@ -179,7 +179,7 @@
    const request = axios.create({
      baseURL: 'http://api.itcast.cn/',
    });
-   
+
    // 请求拦截器
    request.interceptors.request.use((cfg) => {
      // 如果是 mock 则把请求 baseURL 改成 本地地址，不然 mockjs 拦截不到
@@ -190,30 +190,26 @@
    });
    ```
 
-
-
 ## API
 
 ### mockdb
 
 ```javascript
-const mockdb = require('@andremao/mockdb')
+const mockdb = require('@andremao/mockdb');
 ```
 
 #### mockdb.install(app)
 
 安装，挂载中间件，app 为服务器实例，无返回值
 
-#### mockdb.service(name)
+#### mockdb.service(jsonFileName)
 
-返回能操作 JSON 文件的 service 实例，name 为 JSON 文件名（**不需要 .json 后缀**）（**尽量和 mockdb 配置文件名保持一致** ）
-
-
+返回能操作 JSON 文件的 service 实例，jsonFileName 为 JSON 文件名（**尽量和 mockdb 配置文件名保持一致** ）
 
 ### service
 
 ```javascript
-const service = mockdb.service('user')
+const service = mockdb.service('user');
 ```
 
 #### service.insert(data)
@@ -259,4 +255,3 @@ const service = mockdb.service('user')
 #### service.setState(state)
 
 设置 JSON 文件中的全部数据，返回 this
-
