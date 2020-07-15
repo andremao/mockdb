@@ -252,3 +252,11 @@ const service = mockdb.service('user')
 - data：查询到的数据列表，Array
 - total：满足条件的总数据量，Number
 
+#### service.getState()
+
+获取 JSON 文件中的全部数据，返回对象，形如：`{ list: [ ... ], ... }`
+
+#### service.setState(state)
+
+设置 JSON 文件中的全部数据，返回 this
+

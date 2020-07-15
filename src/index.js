@@ -82,7 +82,8 @@ module.exports = {
         return db.getState();
       },
       setState(state) {
-        return db.setState(state);
+        db.setState(state);
+        return this;
       },
       // 插入数据
       insert(data) {
