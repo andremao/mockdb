@@ -1,5 +1,6 @@
 const mockjs = require('mockjs');
 const fs = require('fs');
+const _ = require('lodash');
 const path = require('path');
 const URLPattern = require('url-pattern');
 const lowdb = require('lowdb');
@@ -17,9 +18,9 @@ if (!fs.existsSync(mockDir)) {
   throw new Error(`Cannot find dir "${mockDir}"`);
 }
 
-const jsonDir = path.resolve(projRootPath, 'mockdb/json');
-if (!fs.existsSync(jsonDir)) {
-  fs.mkdirSync(jsonDir);
+const dbDir = path.resolve(projRootPath, 'mockdb/db');
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir);
 }
 
 module.exports = {
@@ -70,9 +71,8 @@ module.exports = {
     if (!existed) next();
   },
   service(module) {
-    const db = lowdb(new FileSync(path.resolve(jsonDir, `${module}.json`)));
+    const db = lowdb(new FileSync(path.resolve(dbDir, `${module}.json`)));
     db.defaults({ list: [] }).write();
-    const _ = db._;
 
     return {
       // 插入数据
@@ -84,16 +84,80 @@ module.exports = {
         return model;
       },
       // 分页查询
-      pagedQuery({ page, size }) {
-        const list = db.get('list').value();
-        if (!list || !list.length) {
-          return {
-            data: [],
-            total: 0,
-          };
+      pagedQuery({ page, size, eq, gt, lt, ge, le, like }) {
+        let chain = db.get('list');
+
+        // eq
+        // console.log(eq, 'eq');
+        if (eq && Object.keys(eq).length) {
+          chain = chain.filter(eq);
         }
+        // /eq
+
+        // gt
+        // console.log(gt, 'gt');
+        if (gt && Object.keys(gt).length) {
+          chain = chain.filter((model) => {
+            for (const [k, v] of Object.entries(gt)) {
+              if (model[k] > v) return true;
+            }
+            return false;
+          });
+        }
+        // /gt
+
+        // lt
+        // console.log(lt, 'lt');
+        if (lt && Object.keys(lt).length) {
+          chain = chain.filter((model) => {
+            for (const [k, v] of Object.entries(lt)) {
+              if (model[k] < v) return true;
+            }
+            return false;
+          });
+        }
+        // /lt
+
+        // ge
+        // console.log(ge, 'ge');
+        if (ge && Object.keys(ge).length) {
+          chain = chain.filter((model) => {
+            for (const [k, v] of Object.entries(ge)) {
+              if (model[k] >= v) return true;
+            }
+            return false;
+          });
+        }
+        // /ge
+
+        // le
+        // console.log(le, 'le');
+        if (le && Object.keys(le).length) {
+          chain = chain.filter((model) => {
+            for (const [k, v] of Object.entries(le)) {
+              if (model[k] <= v) return true;
+            }
+            return false;
+          });
+        }
+        // /le
+
+        // like
+        // console.log(like, 'like');
+        if (like && Object.keys(like).length) {
+          chain = chain.filter((model) => {
+            for (const [k, v] of Object.entries(like)) {
+              if (model[k].includes(v)) return true;
+            }
+            return false;
+          });
+        }
+        // /like
+
+        const list = chain.value() || [];
+        // console.log(list, 'list');
         return {
-          data: _.chunk(list, size)[page - 1],
+          data: _.chunk(list, size)[page - 1] || [],
           total: list.length,
         };
       },
