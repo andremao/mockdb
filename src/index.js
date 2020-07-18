@@ -81,6 +81,9 @@ module.exports = {
     db.defaults({ list: [] }).write();
 
     return {
+      getDB() {
+        return db;
+      },
       getState() {
         return db.getState();
       },
