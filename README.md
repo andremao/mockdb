@@ -1,6 +1,6 @@
 ## 介绍
 
-这是一个基于 Express 支持 **JSON 文件持久化** 和 **热加载配置文件** 管理 `mockjs` 的中间件模块
+这是一个基于 lowdb 支持 **JSON 文件持久化** 和 **热加载配置文件** 管理 `mockjs` 的 Express 中间件模块
 
 ## 安装
 
@@ -255,3 +255,8 @@ const service = mockdb.service('user');
 #### service.setState(state)
 
 设置 JSON 文件中的全部数据，返回 this
+
+#### service.getDB()
+
+返回 db 实例，具体 API 详见：[lowdb](https://github.com/typicode/lowdb)
+
