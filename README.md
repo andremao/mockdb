@@ -17,84 +17,18 @@
    ```javascript
    const service = require('@andremao/mockdb').service('user');
    const mockjs = require('mockjs');
-
+   
    module.exports = {
      // 要被 mockjs 拦截的请求集
      requests: [
-       {
-         // 请求类型支持大小写
-         type: 'GET',
-         // 注意：
-         //   mockjs 只能拦截本地主机地址（如：http://localhost:8080/user/list）
-         //   mockjs 不能拦截跨域的线上地址（如：http://api.itcast.cn/user/list）
-         url: '/user/list',
-         // 数据模板，请参照 mockjs
-         // 注意：tpl 生成出的数据不会持久化到 json 文件，如需持久化请使用 handle 配合 service（请看下一个例子）
-         tpl: {
-           code: 200,
-           message: '获取用户列表成功',
-           'data|1-10': [{ id: '@ID()', name: '@CNAME()', 'age|18-60': 1 }],
-         },
-       },
-       // 分页查询
-       {
-         type: 'get',
-         url: '/user/pagedquery',
-         handle(req, res) {
-           console.log(req.query, 'req.query');
-
-           // 如果 JSON 文件中没有数据，则自动生成 100 条
-           const { list } = service.getState();
-           if (!list || !list.length) {
-             // 批量插入，持久化至 JSON 文件中，insert 方法支持单个对象或数组
-             service.insert(
-               mockjs.mock({
-                 'list|100': [
-                   { id: '@GUID()', name: '@CNAME()', 'age|15-60': 1 },
-                 ],
-               }).list,
-             );
-           }
-           // /如果 JSON 文件中没有数据，则自动生成 100 条
-
-           const { page, size, name, age, ageType } = req.query;
-           const conditions = {};
-           if (name) {
-             conditions.like = { name };
-           }
-           if (age != null) {
-             conditions[ageType] = { age: parseInt(age) };
-           }
-           // 分页查询，参数含义如下：
-           // { page: 当前页码, size: 每页条数, like: 模糊查询, eq: 等于, lt: 小于, gt: 大于, le: 小于等于, ge: 大于等于 }
-           const result = service.pagedQuery({ page, size, ...conditions });
-           res.json({
-             code: 200,
-             message: '分页查询成功',
-             ...result,
-           });
-         },
-       },
-       // 根据 id 查询
-       {
-         type: 'get',
-         // 支持动态路由参数
-         url: '/user/:id',
-         handle(req, res) {
-           const { id } = req.params;
-           // 根据 id 查找用户
-           const user = service.find(id);
-           res.json({
-             code: 200,
-             message: '获取用户信息成功',
-             data: user,
-           });
-         },
-       },
        // 增
        {
+         // 请求类型支持大小写
          type: 'post',
-         url: '/user/create',
+         // 注意：
+         //   mockjs 只能拦截本地主机地址（如：http://localhost:8080/user）
+         //   mockjs 不能拦截跨域的线上地址（如：http://api.itcast.cn/user）
+         url: '/user',
          handle(req, res) {
            console.log(req.body, 'req.body');
            // 插入单个，返回插入之后的对象（包含 id）
@@ -137,14 +71,101 @@
            });
          },
        },
+       // 根据 id 查询
+       {
+         type: 'get',
+         // 支持动态路由参数
+         url: '/user/:id',
+         handle(req, res) {
+           const { id } = req.params;
+           // 根据 id 查找用户
+           const user = service.find(id);
+           res.json({
+             code: 200,
+             message: '获取用户信息成功',
+             data: user,
+           });
+         },
+       },
+       // 分页查询
+       {
+         type: 'GET',
+         url: '/users',
+         handle(req, res) {
+           console.log(req.query, 'req.query');
+   
+           // // 如果json文件中没有数据，则自动生成100条
+           // const { list } = service.getState();
+           // if (!list || !list.length) {
+           //   service.insert(
+           //     mockjs.mock({
+           //       'list|100': [{ name: '@CNAME()', 'age|15-60': 1, id: '@GUID()' }],
+           //     }).list,
+           //   );
+           // }
+           // // /如果json文件中没有数据，则自动生成100条
+   
+           const { page, size, name, ageType } = req.query;
+           const age = parseInt(req.query.age);
+           const result = service.pagingQuery({
+             page,
+             size,
+             // 过滤，就是数组的 filter 方法的回调函数
+             filter(user) {
+               const results = [];
+               if (name) {
+                 results.push(user.name.includes(name));
+               }
+               if (!isNaN(age)) {
+                 switch (ageType) {
+                   case 'eq':
+                     results.push(user.age === age);
+                     break;
+                   case 'ne':
+                     results.push(user.age !== age);
+                     break;
+                   case 'gt':
+                     results.push(user.age > age);
+                     break;
+                   case 'lt':
+                     results.push(user.age < age);
+                     break;
+                   case 'ge':
+                     results.push(user.age >= age);
+                     break;
+                   case 'le':
+                     results.push(user.age <= age);
+                     break;
+                   default:
+                     break;
+                 }
+               }
+               return results.every(v => v);
+             },
+             // 排序，就是数组的 sort 方法的回调函数
+             sort(user1, user2) {
+               // 何时把 user1 放到 user2 后面? 当 user1.age > user2.age 时
+               if (user1.age > user2.age) return 1;
+               // 何时把 user1 放到 user2 前面? 当 user1.age > user2.age 时
+               if (user1.age < user2.age) return -1;
+               // 何时不用换位置? 当 user1.age === user2.age 时
+               return 0;
+   
+               // 补充顺明:
+               // 1 上面的代码等价：return user1.age - user2.age; 虽然代码量少，但不推荐，因为可读性差
+               // 2 不要直接使用 return user1.age > user2.age; 因为在不同运行环境下执行结果可能不一致，有坑！！！
+             },
+           });
+           res.json({
+             code: 200,
+             message: 'ok',
+             ...result,
+           });
+         },
+       },
      ],
    };
    ```
-
-   补充：
-
-   1. `tpl` 请参照 [mockjs](http://mockjs.com/) 的 `template` 格式
-   2. `handle` 的优先级高于 `tpl`，配置了 `handle` 就会忽略 `tpl`
 
 4. 在 vue 中使用，修改 `vue.config.js` 配置文件：
 

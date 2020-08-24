@@ -42,7 +42,7 @@ module.exports = {
         requests.push(...require(p).requests);
       });
 
-      const existed = requests.some(({ type = 'GET', url, tpl, handle }) => {
+      const existed = requests.some(({ type = 'GET', url, handle }) => {
         if (type.toUpperCase() !== method.toUpperCase()) return false;
 
         if (url instanceof RegExp) {
@@ -60,11 +60,7 @@ module.exports = {
           }
         }
 
-        if (handle) {
-          handle(req, res, next);
-        } else {
-          res.json(mockjs.mock(tpl));
-        }
+        handle(req, res, next);
 
         return true;
       });
