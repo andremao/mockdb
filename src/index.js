@@ -42,8 +42,8 @@ module.exports = {
         requests.push(...require(p).requests);
       });
 
-      const existed = requests.some(({ type = 'GET', url, handle }) => {
-        if (type.toUpperCase() !== method.toUpperCase()) return false;
+      const existed = requests.some(({ method = 'GET', url, handler }) => {
+        if (method.toUpperCase() !== method.toUpperCase()) return false;
 
         if (url instanceof RegExp) {
           if (!url.test(reqPath)) return false;
@@ -60,7 +60,7 @@ module.exports = {
           }
         }
 
-        handle(req, res, next);
+        handler(req, res, next);
 
         return true;
       });

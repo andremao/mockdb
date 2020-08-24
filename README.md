@@ -15,7 +15,7 @@
 3. `mockdb` 配置文件内容如下（假设存在 `mockdb/mock/user.js` 配置文件）：
 
    ```javascript
-   const service = require('@andremao/mockdb').service('user');
+   const service = require('@andremao/mockdb').service('user.json');
    const mockjs = require('mockjs');
    
    module.exports = {
@@ -24,12 +24,12 @@
        // 增
        {
          // 请求类型支持大小写
-         type: 'post',
+         method: 'post',
          // 注意：
          //   mockjs 只能拦截本地主机地址（如：http://localhost:8080/user）
          //   mockjs 不能拦截跨域的线上地址（如：http://api.itcast.cn/user）
          url: '/user',
-         handle(req, res) {
+         handler(req, res) {
            console.log(req.body, 'req.body');
            // 插入单个，返回插入之后的对象（包含 id）
            const user = service.insert(req.body);
@@ -42,9 +42,9 @@
        },
        // 删
        {
-         type: 'delete',
+         method: 'delete',
          url: '/user/:id',
-         handle(req, res) {
+         handler(req, res) {
            console.log(req.params, 'req.params');
            // 根据 id 删除，返回被删除的对象
            const user = service.delete(req.params.id);
@@ -57,9 +57,9 @@
        },
        // 改
        {
-         type: 'patch',
+         method: 'patch',
          url: '/user/:id',
-         handle(req, res) {
+         handler(req, res) {
            console.log(req.params, 'req.params');
            console.log(req.body, 'req.body');
            // 根据 id 补丁更新，返回更新后的对象
@@ -73,10 +73,10 @@
        },
        // 根据 id 查询
        {
-         type: 'get',
+         method: 'get',
          // 支持动态路由参数
          url: '/user/:id',
-         handle(req, res) {
+         handler(req, res) {
            const { id } = req.params;
            // 根据 id 查找用户
            const user = service.find(id);
@@ -89,9 +89,9 @@
        },
        // 分页查询
        {
-         type: 'GET',
+         method: 'GET',
          url: '/users',
-         handle(req, res) {
+         handler(req, res) {
            console.log(req.query, 'req.query');
    
            // // 如果json文件中没有数据，则自动生成100条
@@ -136,8 +136,6 @@
                    case 'le':
                      results.push(user.age <= age);
                      break;
-                   default:
-                     break;
                  }
                }
                return results.every(v => v);
@@ -166,7 +164,7 @@
      ],
    };
    ```
-
+   
 4. 在 vue 中使用，修改 `vue.config.js` 配置文件：
 
    ```javascript
