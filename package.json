@@ -7,8 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "andremao",
+  "homepage": "https://github.com/andremao/mockdb",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:andremao/mockdb.git"
+  },
+  "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.19",
     "lowdb": "^1.0.0",
