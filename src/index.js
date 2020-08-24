@@ -24,9 +24,8 @@ if (!fs.existsSync(dbDir)) {
 }
 
 module.exports = {
-  install(app) {
-    app.use(require('body-parser').json());
-    app.use((req, res, next) => {
+  middleware() {
+    return (req, res, next) => {
       const { path: reqPath, method } = req;
 
       const files = fs.readdirSync(mockDir).filter((v) => v.endsWith('.js'));
@@ -71,7 +70,7 @@ module.exports = {
       });
 
       if (!existed) next();
-    });
+    };
   },
   service(jsonFileName) {
     if (!jsonFileName.endsWith('.json')) {
@@ -125,78 +124,19 @@ module.exports = {
         return db.get('list').find({ id }).value();
       },
       // 分页查询
-      pagedQuery({ page = 1, size = 10, eq, gt, lt, ge, le, like }) {
+      pagingQuery({ page = 1, size = 10, filter, sort }) {
         let chain = db.get('list');
 
-        // eq
-        // console.log(eq, 'eq');
-        if (eq && Object.keys(eq).length) {
-          chain = chain.filter(eq);
+        if (filter) {
+          chain = chain.filter(filter);
         }
-        // /eq
 
-        // gt
-        // console.log(gt, 'gt');
-        if (gt && Object.keys(gt).length) {
-          chain = chain.filter((model) => {
-            for (const [k, v] of Object.entries(gt)) {
-              if (model[k] > v) return true;
-            }
-            return false;
-          });
+        if (sort) {
+          chain = chain.sort(sort);
         }
-        // /gt
-
-        // lt
-        // console.log(lt, 'lt');
-        if (lt && Object.keys(lt).length) {
-          chain = chain.filter((model) => {
-            for (const [k, v] of Object.entries(lt)) {
-              if (model[k] < v) return true;
-            }
-            return false;
-          });
-        }
-        // /lt
-
-        // ge
-        // console.log(ge, 'ge');
-        if (ge && Object.keys(ge).length) {
-          chain = chain.filter((model) => {
-            for (const [k, v] of Object.entries(ge)) {
-              if (model[k] >= v) return true;
-            }
-            return false;
-          });
-        }
-        // /ge
-
-        // le
-        // console.log(le, 'le');
-        if (le && Object.keys(le).length) {
-          chain = chain.filter((model) => {
-            for (const [k, v] of Object.entries(le)) {
-              if (model[k] <= v) return true;
-            }
-            return false;
-          });
-        }
-        // /le
-
-        // like
-        // console.log(like, 'like');
-        if (like && Object.keys(like).length) {
-          chain = chain.filter((model) => {
-            for (const [k, v] of Object.entries(like)) {
-              if (model[k].includes(v)) return true;
-            }
-            return false;
-          });
-        }
-        // /like
 
         const list = chain.value() || [];
-        // console.log(list, 'list');
+
         return {
           data: _.chunk(list, size)[page - 1] || [],
           total: list.length,

@@ -149,18 +149,22 @@
 4. 在 vue 中使用，修改 `vue.config.js` 配置文件：
 
    ```javascript
+   const mockdb = require('@andremao/mockdb');
+   const bodyParser = require('body-parser');
+
    module.exports = {
      devServer: {
        before(app) {
          // 判断是否为开发环境
          if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
-           // 安装，挂上中间件
-           require('@andremao/mockdb').install(app);
+           app.use(bodyParser.json(), mockdb.middleware());
          }
        },
      },
    };
    ```
+
+   Demo 仓库地址：https://github.com/andremao/vue-mockdb-demo
 
 5. 重启项目即可，并支持热加载，后续改动 `mockdb/mock/*.js` 与 `mockdb/db/*.json` 文件无需重启
 
@@ -198,9 +202,9 @@
 const mockdb = require('@andremao/mockdb');
 ```
 
-#### mockdb.install(app)
+#### mockdb.middleware()
 
-安装，挂载中间件，app 为服务器实例，无返回值
+获取中间件处理函数
 
 #### mockdb.service(jsonFileName)
 
@@ -209,7 +213,7 @@ const mockdb = require('@andremao/mockdb');
 ### service
 
 ```javascript
-const service = mockdb.service('user');
+const service = mockdb.service('user.json');
 ```
 
 #### service.insert(data)
@@ -228,20 +232,16 @@ const service = mockdb.service('user');
 
 根据 id 查找，返回找到的对象
 
-#### service.pagedQuery({ page, size, eq, gt, lt, ge, le, like })
+#### service.pagedQuery({ page, size, filter, sort })
 
-分页查询
+分页查询，返回对象，形如`{ data: [...], total: 100 }`
 
 参数列表如下：
 
 - page: 当前页码，默认 1
 - size: 每页条数，默认 10
-- like: 模糊查询，Object
-- eq: 等于，Object
-- lt: 小于，Object
-- gt: 大于，Object
-- le: 小于等于，Object
-- ge: 大于等于，Object
+- filter: 过滤方法 filter 的回调函数，Function
+- sort: 排序方法 sort 的回调函数，Function
 
 返回值如下：
 
@@ -254,9 +254,8 @@ const service = mockdb.service('user');
 
 #### service.setState(state)
 
-设置 JSON 文件中的全部数据，返回 this
+设置 JSON 文件中的全部数据，返回 service 实例
 
 #### service.getDB()
 
 返回 db 实例，具体 API 详见：[lowdb](https://github.com/typicode/lowdb)
-
