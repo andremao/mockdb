@@ -76,21 +76,26 @@ module.exports = {
     db.defaults({ list: [] }).write();
 
     return {
-      // 创建数据
-      create(data) {
-        if (_.isArray(data)) {
-          data.map((v) => {
-            v.id = mockjs.Random.guid();
-            return v;
-          });
-          db.get('list')
-            .push(...data)
-            .write();
-        } else {
-          data.id = mockjs.Random.guid();
-          db.get('list').push(data).write();
+      // 创建
+      create(model) {
+        if (!model.id) {
+          model.id = mockjs.Random.guid();
         }
-        return data;
+        db.get('list').push(model).write();
+        return model;
+      },
+      // 批量创建
+      batchCreate(models) {
+        models.map((v) => {
+          if (!v.id) {
+            v.id = mockjs.Random.guid();
+          }
+          return v;
+        });
+        db.get('list')
+          .push(...models)
+          .write();
+        return models;
       },
       // 根据id删除，删除成功返回被删除的数据，否则返回null
       delete(id) {
@@ -112,17 +117,13 @@ module.exports = {
       // 分页查询
       pagingQuery({ page = 1, size = 10, filter, sort }) {
         let chain = db.get('list');
-
         if (filter) {
           chain = chain.filter(filter);
         }
-
         if (sort) {
           chain = chain.sort(sort);
         }
-
         const list = chain.value() || [];
-
         return {
           data: _.chunk(list, size)[page - 1] || [],
           total: list.length,

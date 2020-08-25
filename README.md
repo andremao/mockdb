@@ -32,7 +32,7 @@
          handler(req, res) {
            console.log(req.body, 'req.body');
            // 插入单个，返回插入之后的对象（包含 id）
-           const user = service.insert(req.body);
+           const user = service.create(req.body);
            res.json({
              code: 200,
              message: '添加用户成功',
@@ -63,7 +63,7 @@
            console.log(req.params, 'req.params');
            console.log(req.body, 'req.body');
            // 根据 id 补丁更新，返回更新后的对象
-           const user = service.patchUpdate(req.params.id, req.body);
+           const user = service.patch(req.params.id, req.body);
            res.json({
              code: 200,
              message: 'ok',
@@ -235,9 +235,13 @@ const mockdb = require('@andremao/mockdb');
 const service = mockdb.service('user.json');
 ```
 
-#### service.create(data)
+#### service.create(model)
 
-插入数据，data 支持单个对象或数组，返回插入成功后的数据（包含 id）
+创建数据，model 为对象，如果没有 id，则会自动生成 id，返回 model（包含 id）
+
+#### service.batchCreate(models)
+
+批量创建，models 为数组，如果没有 id，则会自动生成 id，返回 models（包含 id）
 
 #### service.delete(id)
 
