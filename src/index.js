@@ -26,7 +26,7 @@ if (!fs.existsSync(dbDir)) {
 module.exports = {
   middleware() {
     return (req, res, next) => {
-      const { path: reqPath, method } = req;
+      const { path: reqPath, method: reqMethod } = req;
 
       const files = fs.readdirSync(mockDir).filter((v) => v.endsWith('.js'));
 
@@ -43,7 +43,7 @@ module.exports = {
       });
 
       const existed = requests.some(({ method = 'GET', url, handler }) => {
-        if (method.toUpperCase() !== method.toUpperCase()) return false;
+        if (method.toUpperCase() !== reqMethod.toUpperCase()) return false;
 
         if (url instanceof RegExp) {
           if (!url.test(reqPath)) return false;
