@@ -42,28 +42,30 @@ module.exports = {
         requests.push(...require(p).requests);
       });
 
-      const existed = requests.some(({ method = 'GET', url, handler }) => {
-        if (method.toUpperCase() !== reqMethod.toUpperCase()) return false;
+      const existed = requests
+        .filter((v) => v.active !== false)
+        .some(({ method = 'GET', url, handler }) => {
+          if (method.toUpperCase() !== reqMethod.toUpperCase()) return false;
 
-        if (url instanceof RegExp) {
-          if (!url.test(reqPath)) return false;
-        } else {
-          const params = new URLPattern(url).match(reqPath);
-          if (!params) {
-            return false;
-          }
-
-          if (req.params) {
-            Object.assign(req.params, params);
+          if (url instanceof RegExp) {
+            if (!url.test(reqPath)) return false;
           } else {
-            req.params = params;
+            const params = new URLPattern(url).match(reqPath);
+            if (!params) {
+              return false;
+            }
+
+            if (req.params) {
+              Object.assign(req.params, params);
+            } else {
+              req.params = params;
+            }
           }
-        }
 
-        handler(req, res, next);
+          handler(req, res, next);
 
-        return true;
-      });
+          return true;
+        });
 
       if (!existed) next();
     };

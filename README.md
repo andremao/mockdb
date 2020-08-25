@@ -42,6 +42,8 @@
        },
        // 删
        {
+         // 可以通过 active 配置该请求的激活状态，默认为激活
+         active: false,
          method: 'delete',
          url: '/user/:id',
          handler(req, res) {
@@ -187,31 +189,60 @@
 
 5. 重启项目即可，并支持热加载，后续改动 `mockdb/mock/*.js` 与 `mockdb/db/*.json` 文件无需重启
 
-6. 配合 `axios` 的请求拦截器，可以实现 **mock 环境** 与 **线上环境** 混搭
+6. 可以实现 **mock 环境** 与 **线上环境** 混搭：
 
-   发请求：
+   1. 使用代理服务器**（推荐）**，例如：Vue CLI 配置，详见 https://cli.vuejs.org/zh/config/#devserver-proxy
 
-   ```javascript
-   axios.post('/login?ismock=1', { uname: 'andremao', pwd: 'qwe123' });
-   ```
-
-   axios：
-
-   ```javascript
-   // 创建 axios 请求实例
-   const request = axios.create({
-     baseURL: 'http://api.itcast.cn/',
-   });
-
-   // 请求拦截器
-   request.interceptors.request.use((cfg) => {
-     // 如果是 mock 则把请求 baseURL 改成 本地地址，不然 mockjs 拦截不到
-     if (cfg.url.includes('ismock=1')) {
-       cfg.baseURL = 'http://localhost:8080';
-     }
-     return cfg;
-   });
-   ```
+      ```javascript
+      const mockdb = require('@andremao/mockdb');
+      const bodyParser = require('body-parser');
+   
+      module.exports = {
+     devServer: {
+          before(app) {
+            // 判断是否为开发环境
+            if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
+              app.use(bodyParser.json(), mockdb.middleware());
+            }
+       },
+          proxy: {
+            '/api': {
+              target: 'http://some.api.itcast.cn',
+              changeOrigin: true,
+              pathRewrite: {
+                '^/api': '',
+              },
+            },
+          },
+        },
+      };
+      ```
+   
+   2. 或者，配置 axios 的请求拦截器，动态设置 baseURL
+   
+      发请求：
+   
+      ```javascript
+      axios.post('/login?ismock=1', { uname: 'andremao', pwd: 'qwe123' });
+      ```
+   
+      axios：
+   
+      ```javascript
+      // 创建 axios 请求实例
+      const request = axios.create({
+        baseURL: 'http://api.itcast.cn/',
+      });
+      
+      // 请求拦截器
+      request.interceptors.request.use((cfg) => {
+        // 如果是 mock 则把请求 baseURL 改成 本地地址，不然 mockjs 拦截不到
+        if (cfg.url.includes('ismock=1')) {
+          cfg.baseURL = 'http://localhost:8080';
+        }
+        return cfg;
+      });
+      ```
 
 ## API
 
