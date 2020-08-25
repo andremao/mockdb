@@ -204,7 +204,7 @@
             if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
               app.use(bodyParser.json(), mockdb.middleware());
             }
-       },
+       		},
           proxy: {
             '/api': {
               target: 'http://some.api.itcast.cn',
@@ -217,8 +217,6 @@
         },
       };
       ```
-   
-      
    
    2. 或者，配置 axios 的请求拦截器，动态设置 baseURL
    
