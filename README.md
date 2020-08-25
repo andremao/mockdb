@@ -17,7 +17,7 @@
    ```javascript
    const service = require('@andremao/mockdb').service('user.json');
    const mockjs = require('mockjs');
-   
+
    module.exports = {
      // 要被 mockjs 拦截的请求集
      requests: [
@@ -95,7 +95,7 @@
          url: '/users',
          handler(req, res) {
            console.log(req.query, 'req.query');
-   
+
            // // 如果json文件中没有数据，则自动生成100条
            // const { list } = service.getState();
            // if (!list || !list.length) {
@@ -106,7 +106,7 @@
            //   );
            // }
            // // /如果json文件中没有数据，则自动生成100条
-   
+
            const { page, size, name, ageType } = req.query;
            const age = parseInt(req.query.age);
            const result = service.pagingQuery({
@@ -140,7 +140,7 @@
                      break;
                  }
                }
-               return results.every(v => v);
+               return results.every((v) => v);
              },
              // 排序，就是数组的 sort 方法的回调函数
              sort(user1, user2) {
@@ -150,7 +150,7 @@
                if (user1.age < user2.age) return -1;
                // 何时不用换位置? 当 user1.age === user2.age 时
                return 0;
-   
+
                // 补充顺明:
                // 1 上面的代码等价：return user1.age - user2.age; 虽然代码量少，但不推荐，因为可读性差
                // 2 不要直接使用 return user1.age > user2.age; 因为在不同运行环境下执行结果可能不一致，有坑！！！
@@ -166,7 +166,7 @@
      ],
    };
    ```
-   
+
 4. 在 vue 中使用，修改 `vue.config.js` 配置文件：
 
    ```javascript
@@ -196,7 +196,7 @@
       ```javascript
       const mockdb = require('@andremao/mockdb');
       const bodyParser = require('body-parser');
-      
+
       module.exports = {
         devServer: {
           before(app) {
@@ -204,7 +204,7 @@
             if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
               app.use(bodyParser.json(), mockdb.middleware());
             }
-       		},
+          },
           proxy: {
             '/api': {
               target: 'http://some.api.itcast.cn',
@@ -217,23 +217,23 @@
         },
       };
       ```
-   
+
    2. 或者，配置 axios 的请求拦截器，动态设置 baseURL
-   
+
       发请求：
-   
+
       ```javascript
       axios.post('/login?ismock=1', { uname: 'andremao', pwd: 'qwe123' });
       ```
-   
+
       axios：
-   
+
       ```javascript
       // 创建 axios 请求实例
       const request = axios.create({
         baseURL: 'http://api.itcast.cn/',
       });
-      
+
       // 请求拦截器
       request.interceptors.request.use((cfg) => {
         // 如果是 mock 则把请求 baseURL 改成 本地地址，不然 mockjs 拦截不到
