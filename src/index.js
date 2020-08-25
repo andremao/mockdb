@@ -10,16 +10,19 @@ const projRootPath = process.cwd();
 
 const dir = path.resolve(projRootPath, 'mockdb');
 if (!fs.existsSync(dir)) {
-  throw new Error(`Cannot find dir "${dir}"`);
+  // throw new Error(`Cannot find dir "${dir}"`);
+  fs.mkdirSync(dir);
 }
 
 const mockDir = path.resolve(projRootPath, 'mockdb/mock');
 if (!fs.existsSync(mockDir)) {
-  throw new Error(`Cannot find dir "${mockDir}"`);
+  // throw new Error(`Cannot find dir "${mockDir}"`);
+  fs.mkdirSync(mockDir);
 }
 
 const dbDir = path.resolve(projRootPath, 'mockdb/db');
 if (!fs.existsSync(dbDir)) {
+  // throw new Error(`Cannot find dir "${dbDir}"`);
   fs.mkdirSync(dbDir);
 }
 
