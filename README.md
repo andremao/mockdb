@@ -191,14 +191,14 @@
 
 6. 可以实现 **mock 环境** 与 **线上环境** 混搭：
 
-   1. 使用代理服务器**（推荐）**，例如：Vue CLI 配置，详见 https://cli.vuejs.org/zh/config/#devserver-proxy
+   1. 使用代理服务器（**推荐**），例如：Vue CLI 配置，详见：https://cli.vuejs.org/zh/config/#devserver-proxy
 
       ```javascript
       const mockdb = require('@andremao/mockdb');
       const bodyParser = require('body-parser');
-   
+      
       module.exports = {
-     devServer: {
+        devServer: {
           before(app) {
             // 判断是否为开发环境
             if (process.env.NODE_ENV.toUpperCase() === 'DEVELOPMENT') {
@@ -217,6 +217,8 @@
         },
       };
       ```
+   
+      
    
    2. 或者，配置 axios 的请求拦截器，动态设置 baseURL
    
