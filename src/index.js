@@ -76,18 +76,8 @@ module.exports = {
     db.defaults({ list: [] }).write();
 
     return {
-      getDB() {
-        return db;
-      },
-      getState() {
-        return db.getState();
-      },
-      setState(state) {
-        db.setState(state);
-        return this;
-      },
-      // 插入数据
-      insert(data) {
+      // 创建数据
+      create(data) {
         if (_.isArray(data)) {
           data.map((v) => {
             v.id = mockjs.Random.guid();
@@ -111,7 +101,7 @@ module.exports = {
         return model;
       },
       // 补丁更新
-      patchUpdate(id, data) {
+      patch(id, data) {
         db.get('list').find({ id }).assign(data).write();
         return this.find(id);
       },
@@ -137,6 +127,16 @@ module.exports = {
           data: _.chunk(list, size)[page - 1] || [],
           total: list.length,
         };
+      },
+      getState() {
+        return db.getState();
+      },
+      setState(state) {
+        db.setState(state);
+        return this;
+      },
+      getDB() {
+        return db;
       },
     };
   },

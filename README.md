@@ -235,7 +235,7 @@ const mockdb = require('@andremao/mockdb');
 const service = mockdb.service('user.json');
 ```
 
-#### service.insert(data)
+#### service.create(data)
 
 插入数据，data 支持单个对象或数组，返回插入成功后的数据（包含 id）
 
@@ -243,7 +243,7 @@ const service = mockdb.service('user.json');
 
 根据 id 删除，删除成功返回被删除的数据，否则返回 null
 
-#### service.patchUpdate(id, data)
+#### service.patch(id, data)
 
 根据 id 补丁更新，返回更新后的对象
 
@@ -251,7 +251,7 @@ const service = mockdb.service('user.json');
 
 根据 id 查找，返回找到的对象
 
-#### service.pagedQuery({ page, size, filter, sort })
+#### service.pagingQuery({ page, size, filter, sort })
 
 分页查询，返回对象，形如`{ data: [...], total: 100 }`
 
