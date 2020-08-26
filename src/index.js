@@ -26,6 +26,8 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir);
 }
 
+const dbMap = {};
+
 module.exports = {
   middleware() {
     return (req, res, next) => {
@@ -77,8 +79,13 @@ module.exports = {
     if (!jsonFileName.endsWith('.json')) {
       jsonFileName += '.json';
     }
-    const db = lowdb(new FileSync(path.resolve(dbDir, jsonFileName)));
-    db.defaults({ list: [] }).write();
+
+    let db = dbMap[jsonFileName];
+    if (!db) {
+      db = lowdb(new FileSync(path.resolve(dbDir, jsonFileName)));
+      db.defaults({ list: [] }).write();
+      dbMap[jsonFileName] = db;
+    }
 
     return {
       // 创建
