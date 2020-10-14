@@ -99,7 +99,7 @@
            // // 如果json文件中没有数据，则自动生成100条
            // const { list } = service.getState();
            // if (!list || !list.length) {
-           //   service.insert(
+           //   service.batchCreate(
            //     mockjs.mock({
            //       'list|100': [{ name: '@CNAME()', 'age|15-60': 1, id: '@GUID()' }],
            //     }).list,

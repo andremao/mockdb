@@ -145,7 +145,7 @@ module.exports = {
         return db.getState();
       },
       setState(state) {
-        db.setState(state);
+        db.setState(state).write();
         return this;
       },
       getDB() {
